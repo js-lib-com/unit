@@ -7,8 +7,9 @@ import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
 import js.unit.util.Strings;
 
 class InsertTableValues extends Work
@@ -30,8 +31,8 @@ class InsertTableValues extends Work
   @Override
   public Object execute(Connection connection) throws SQLException
   {
-    Collection<String> columns = new ArrayList<String>();
-    Collection<String> parameters = new ArrayList<String>();
+    List<String> columns = new ArrayList<>();
+    List<String> parameters = new ArrayList<>();
     Iterator<ColumnDescriptor> it = row.getColumns();
     while(it.hasNext()) {
       columns.add(it.next().getName());
@@ -42,9 +43,19 @@ class InsertTableValues extends Work
     sql.append(driver.getTableQuotationMark());
     sql.append(row.getTableName());
     sql.append(driver.getTableQuotationMark());
+    
     sql.append(" (");
-    sql.append(Strings.join(columns, ","));
-    sql.append(") VALUES(");
+    for(int i = 0; i < columns.size(); ++i) {
+      if(i > 0) {
+        sql.append(',');
+      }
+      sql.append(driver.getTableQuotationMark());
+      sql.append(columns.get(i));
+      sql.append(driver.getTableQuotationMark());
+    }
+    sql.append(") ");
+    
+    sql.append("VALUES(");
     sql.append(Strings.join(parameters, ","));
     sql.append(")");
 

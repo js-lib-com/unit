@@ -20,7 +20,7 @@ class CleanDB extends Work
   public Object execute(Connection connection) throws SQLException
   {
     DatabaseMetaData meta = connection.getMetaData();
-    ResultSet rs = meta.getTables(null, driver.getSchema(), null, new String[]
+    ResultSet rs = meta.getTables(driver.getCatalog(), driver.getSchema(), null, new String[]
     {
       "TABLE"
     });
@@ -32,7 +32,7 @@ class CleanDB extends Work
     }
 
     for(Table table : tablesMap.values()) {
-      rs = meta.getImportedKeys(null, null, table.name);
+      rs = meta.getImportedKeys(driver.getCatalog(), driver.getSchema(), table.name);
       while(rs.next()) {
         String foreignKeyTableName = rs.getString(3);
         // avoid self-referencing foreign keys
@@ -45,11 +45,24 @@ class CleanDB extends Work
     collect(tablesToDrop, tablesMap.values());
     for(Table table : tablesToDrop) {
       Statement stm = connection.createStatement();
-      final String sql = String.format("DELETE FROM %1$s" + table.name + "%1$s", driver.getTableQuotationMark());
+      StringBuilder sql=new StringBuilder();
+      sql.append("DELETE FROM ");
+
+      if(driver.hasSchema()) {
+        sql.append(driver.getTableQuotationMark());
+        sql.append(driver.getSchema());
+        sql.append(driver.getTableQuotationMark());
+        sql.append('.');
+      }
+
+      sql.append(driver.getTableQuotationMark());
+      sql.append(table.name);
+      sql.append(driver.getTableQuotationMark());
+
       if(verbose) {
         System.out.println(sql);
       }
-      stm.execute(sql);
+      stm.execute(sql.toString());
     }
 
     return null;

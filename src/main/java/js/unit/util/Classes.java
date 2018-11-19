@@ -1,5 +1,6 @@
 package js.unit.util;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -329,5 +330,65 @@ public class Classes
       }
     }
     return types;
+  }
+  /**
+   * Retrieve resource, identified by qualified name, as input stream. This method does its best to load requested
+   * resource but throws exception if fail. Resource is loaded using {@link ClassLoader#getResourceAsStream(String)} and
+   * <code>name</code> argument should follow Java class loader convention: it is always considered as absolute path,
+   * that is, should contain package but does not start with leading path separator, e.g. <code>js/fop/config.xml</code>
+   * .
+   * <p>
+   * Resource is searched into next class loaders, in given order:
+   * <ul>
+   * <li>current thread context class loader,
+   * <li>this utility class loader,
+   * <li>system class loader, as returned by {@link ClassLoader#getSystemClassLoader()}
+   * </ul>
+   * 
+   * @param name resource qualified name, using path separators instead of dots.
+   * @return resource input stream.
+   */
+  public static InputStream getResourceAsStream(String name)
+  {
+    // not documented behavior: accept but ignore trailing path separator
+    if(name.charAt(0) == '/') {
+      name = name.substring(1);
+    }
+
+    InputStream stream = getResourceAsStream(name, new ClassLoader[]
+    {
+        Thread.currentThread().getContextClassLoader(), Classes.class.getClassLoader(), ClassLoader.getSystemClassLoader()
+    });
+    if(stream == null) {
+      throw new RuntimeException(String.format("Resource |%s| not found.", name));
+    }
+    return stream;
+  }
+
+  /**
+   * Get named resource input stream from a list of class loaders. Traverses class loaders in given order searching for
+   * requested resource. Return first resource found or null if none found.
+   * 
+   * @param name resource name with syntax as required by Java ClassLoader,
+   * @param classLoaders target class loaders.
+   * @return found resource as input stream or null.
+   */
+  private static InputStream getResourceAsStream(String name, ClassLoader[] classLoaders)
+  {
+    // Java standard class loader require resource name to be an absolute path without leading path separator
+    // at this point <name> argument is guaranteed to not start with leading path separator
+
+    for(ClassLoader classLoader : classLoaders) {
+      InputStream stream = classLoader.getResourceAsStream(name);
+      if(stream == null) {
+        // it seems there are class loaders that require leading path separator
+        // not confirmed rumor but found in similar libraries
+        stream = classLoader.getResourceAsStream('/' + name);
+      }
+      if(stream != null) {
+        return stream;
+      }
+    }
+    return null;
   }
 }

@@ -40,10 +40,18 @@ class InsertTableValues extends Work
     }
 
     StringBuilder sql = new StringBuilder("INSERT INTO ");
+
+    if(driver.hasSchema()) {
+      sql.append(driver.getTableQuotationMark());
+      sql.append(driver.getSchema());
+      sql.append(driver.getTableQuotationMark());
+      sql.append('.');
+    }
+
     sql.append(driver.getTableQuotationMark());
     sql.append(row.getTableName());
     sql.append(driver.getTableQuotationMark());
-    
+
     sql.append(" (");
     for(int i = 0; i < columns.size(); ++i) {
       if(i > 0) {
@@ -54,7 +62,7 @@ class InsertTableValues extends Work
       sql.append(driver.getTableQuotationMark());
     }
     sql.append(") ");
-    
+
     sql.append("VALUES(");
     sql.append(Strings.join(parameters, ","));
     sql.append(")");

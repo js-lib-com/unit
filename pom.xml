@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.js-lib</groupId>
 	<artifactId>js-unit</artifactId>
-	<version>1.0.1</version>
+	<version>1.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>Unit Tests Extensions</name>

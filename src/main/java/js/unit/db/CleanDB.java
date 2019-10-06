@@ -22,7 +22,7 @@ class CleanDB extends Work
     DatabaseMetaData meta = connection.getMetaData();
     ResultSet rs = meta.getTables(driver.getCatalog(), driver.getSchema(), null, new String[]
     {
-      "TABLE"
+        "TABLE"
     });
 
     Map<String, Table> tablesMap = new HashMap<String, Table>();
@@ -36,7 +36,14 @@ class CleanDB extends Work
       while(rs.next()) {
         String foreignKeyTableName = rs.getString(3);
         // avoid self-referencing foreign keys
-        if(foreignKeyTableName.equals(table.name)) continue;
+        if(foreignKeyTableName.equals(table.name)) {
+          continue;
+        }
+        Table foreignTable = tablesMap.get(foreignKeyTableName);
+        if(foreignTable == null) {
+          throw new IllegalStateException(String.format("Foreign key constrain to not existing table:\r\n\t- referencing table: %s\r\n\t- foreign table: %s",
+              table.name, foreignKeyTableName));
+        }
         table.addForeignKey(tablesMap.get(foreignKeyTableName));
       }
     }
@@ -45,7 +52,7 @@ class CleanDB extends Work
     collect(tablesToDrop, tablesMap.values());
     for(Table table : tablesToDrop) {
       Statement stm = connection.createStatement();
-      StringBuilder sql=new StringBuilder();
+      StringBuilder sql = new StringBuilder();
       sql.append("DELETE FROM ");
 
       if(driver.hasSchema()) {

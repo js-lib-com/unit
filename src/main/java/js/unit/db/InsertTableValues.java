@@ -31,6 +31,10 @@ class InsertTableValues extends Work
   @Override
   public Object execute(Connection connection) throws SQLException
   {
+    if(row.isEmpty()) {
+      return null;
+    }
+
     List<String> columns = new ArrayList<>();
     List<String> parameters = new ArrayList<>();
     Iterator<ColumnDescriptor> it = row.getColumns();

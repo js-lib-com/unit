@@ -37,7 +37,7 @@ public class RandomDataUnitTest extends TestCase {
 		while (counter-- > 0) {
 			Person p = TestData.newInstance(Person.class);
 			assertNotNull(p);
-			assertEquals(0, Classes.getFieldValue(p, "id"));
+			assertEquals(0, (int)Classes.getFieldValue(p, "id"));
 		}
 
 		Car c = TestData.newInstance(Car.class);
